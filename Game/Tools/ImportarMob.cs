@@ -7,38 +7,29 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace Emulator
-{
-    public static class ImportarMob
-    {
+namespace Emulator {
+    public static class ImportarMob {
         #region Convert Npc.bin to Npc.xml
-        public static void createNpcBinToXml(string path)
-        {
-            try
-            {
+        public static void createNpcBinToXml(string path) {
+            try {
                 List<string> directories = Directory.GetDirectories(path, "*", SearchOption.AllDirectories).ToList();
                 directories.Add(path);
-                for (int i = 0; i < directories.Count(); i++)
-                {
+                for (int i = 0; i < directories.Count(); i++) {
                     string[] fileEntries = Directory.GetFiles(directories[i]);
 
-                    foreach (string fileName in fileEntries)
-                    {
+                    foreach (string fileName in fileEntries) {
                         Byte[] data = File.ReadAllBytes(fileName);
                         STRUCT_MOB pMob = (STRUCT_MOB)Marshal.PtrToStructure(Marshal.UnsafeAddrOfPinnedArrayElement(data, 0), typeof(STRUCT_MOB));
 
                         ConvertNpcToXml(pMob, directories[i]);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 throw;
             }
         }
 
-        private static void ConvertNpcToXml(STRUCT_MOB NPC, string path)
-        {
+        private static void ConvertNpcToXml(STRUCT_MOB NPC, string path) {
             path = path.Replace("mobs", @"mobs_XML");
 
             if (!Directory.Exists(path))
@@ -50,20 +41,16 @@ namespace Emulator
             if (NPC.name.EndsWith(".") == true)
                 NPC.name = NPC.name.Substring(0, NPC.name.Length - 1);
 
-            try
-            {
-ExportarToXml.ExportaToXml(convertMobBinToXml(NPC), path + NPC.name + ".xml");
-            }
-            catch (Exception e)
-            {
+            try {
+                ExportarToXml.ExportaToXml(convertMobBinToXml(NPC), path + NPC.name + ".xml");
+            } catch (Exception e) {
 
                 throw;
             }
-            
+
         }
 
-        private static SMob convertMobBinToXml(STRUCT_MOB paMob)
-        {
+        private static SMob convertMobBinToXml(STRUCT_MOB paMob) {
             SMob mob = SMob.New();
             mob.Name = paMob.name;
             mob.CapaReino = paMob.Clan;
@@ -148,33 +135,26 @@ ExportarToXml.ExportaToXml(convertMobBinToXml(NPC), path + NPC.name + ".xml");
 
             mob.Affects = new SAffect[32];
 
-            for (int i = 0; i < paMob.Equip.Length; i++)
-            {
+            for (int i = 0; i < paMob.Equip.Length; i++) {
                 mob.Equip[i].Id = paMob.Equip[i].sIndex;
                 mob.Equip[i].Ef = new SItemEF[3];
-                for (int a = 0; a < paMob.Equip[i].sEffect.Length; a++)
-                {
+                for (int a = 0; a < paMob.Equip[i].sEffect.Length; a++) {
                     mob.Equip[i].Ef[a].Type = paMob.Equip[i].sEffect[a].cEfeito;
                     mob.Equip[i].Ef[a].Value = paMob.Equip[i].sEffect[a].cValue;
                 }
             }
 
-            try
-            {
-                for (int i = 0; i < 60; i++)
-                {
+            try {
+                for (int i = 0; i < 60; i++) {
                     mob.Inventory[i].Id = paMob.Carry[i].sIndex;
                     mob.Inventory[i].Ef = new SItemEF[3];
-                    for (int a = 0; a < paMob.Carry[i].sEffect.Length; a++)
-                    {
+                    for (int a = 0; a < paMob.Carry[i].sEffect.Length; a++) {
                         mob.Inventory[i].Ef[a].Type = paMob.Carry[i].sEffect[a].cEfeito;
                         mob.Inventory[i].Ef[a].Value = paMob.Carry[i].sEffect[a].cValue;
                     }
                 }
 
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
 
                 Console.WriteLine(ex); ;
             }
@@ -185,89 +165,74 @@ ExportarToXml.ExportaToXml(convertMobBinToXml(NPC), path + NPC.name + ".xml");
         #endregion
 
         #region Convert NpcGener.txt to NpcGener.xml
-        public static void createNpcGeneratorToXml(string path, string fileName)
-        {
+        public static void createNpcGeneratorToXml(string path, string fileName) {
             ExportarToXml.ExportaToXml(convertNpcGeneratorToXml(path + fileName), path + @"\NPCGenerator.xml");
         }
 
-        private static List<SMobList> convertNpcGeneratorToXml(string path)
-        {
+        private static List<SMobList> convertNpcGeneratorToXml(string path) {
             StreamReader stream = new StreamReader(path);
             string linha = null;
             int i = 0;
             List<SMobList> mobList = new List<SMobList>();
             SMobList mob = SMobList.New();
 
-            try
-            {
-                while ((linha = stream.ReadLine()) != null)
-                {
+            try {
+                while ((linha = stream.ReadLine()) != null) {
                     if (linha == "")
                         continue;
-                    if (i == 5)
-                    {
+                    if (i == 5) {
 
                     }
 
                     if (linha.Substring(0, 1).Equals("#") || linha.Substring(0, 1).Equals("/") || linha.Substring(0, 1) == null)
                         continue;
 
-                    if (linha.Contains("MaxNumMob"))
-                    {
+                    if (linha.Contains("MaxNumMob")) {
                         i = i + 1;
                         mob.Number = (short)Convert.ToInt16(linha.Split(':')[1].Substring(1, linha.Split(':')[1].Length - 1));
                     }
 
 
-                    if (linha.Contains("Leader"))
-                    {
+                    if (linha.Contains("Leader")) {
                         i = i + 1;
                         mob.MobName = linha.Split(':')[1].Substring(1, linha.Split(':')[1].Length - 1).Trim();
                         mob.MobName = mob.MobName.EndsWith(".") == true ? mob.MobName.Substring(0, mob.MobName.Length - 1) : mob.MobName;
                     }
 
-                    if (linha.Contains("StartX"))
-                    {
+                    if (linha.Contains("StartX")) {
                         i = i + 1;
                         mob.PositionInicial.X = (short)Convert.ToInt16(linha.Split(':')[1].Substring(1, linha.Split(':')[1].Length - 1));
                     }
 
-                    if (linha.Contains("StartY"))
-                    {
+                    if (linha.Contains("StartY")) {
                         i = i + 1;
                         mob.PositionInicial.Y = (short)Convert.ToInt16(linha.Split(':')[1].Substring(1, linha.Split(':')[1].Length - 1));
                     }
 
-                    if (linha.Contains("DestX"))
-                    {
+                    if (linha.Contains("DestX")) {
                         i = i + 1;
                         mob.PositionFinal.X = (short)Convert.ToInt16(linha.Split(':')[1].Substring(1, linha.Split(':')[1].Length - 1));
                     }
 
-                    if (linha.Contains("DestY"))
-                    {
+                    if (linha.Contains("DestY")) {
                         i = i + 1;
                         var apenasDigitos = new Regex(@"[^\d]");
-                         string var = apenasDigitos.Replace(linha.Split(':')[1].Substring(1, linha.Split(':')[1].Length - 1), "");
+                        string var = apenasDigitos.Replace(linha.Split(':')[1].Substring(1, linha.Split(':')[1].Length - 1), "");
                         mob.PositionFinal.Y = (short)Convert.ToInt16(var);
                     }
 
-                    if (linha.Contains("RouteType"))
-                    {
+                    if (linha.Contains("RouteType")) {
                         i = i + 1;
                         mob.FreqStep = (short)Convert.ToInt16(linha.Split(':')[1].Substring(1, linha.Split(':')[1].Length - 1));
                     }
 
-                    if (i == 9)
-                    {
+                    if (i == 9) {
                         i = 1;
                         mobList.Add(mob);
                         mob = SMobList.New();
                     }
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
 
                 throw;
             }
